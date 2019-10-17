@@ -46,3 +46,4 @@ app.listen(
 
 // console.log ("escuando na porta 8000")
 // server.listen(8000);
+// para executar é nodejs ./src/index.js
