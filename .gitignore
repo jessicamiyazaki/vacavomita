@@ -62,3 +62,8 @@ typings/
 
 
 .idea/*
+
+# isso é meu DB
+cockroach-data
+
+
