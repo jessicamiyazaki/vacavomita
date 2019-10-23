@@ -1,56 +1,139 @@
-var Sequelize = require('sequelize-cockroachdb');
+const Sequelize = require('sequelize-cockroachdb');
+
+const express = require('express')
+const app = express()
+const port = 8000
 
 // Connect to CockroachDB through Sequelize.
-var sequelize = new Sequelize('vacavomita', 'vacavomita', '', {
+const sequelize = new Sequelize('vacavomita', 'vacavomita', '', {
   dialect: 'postgres',
   port: 26257,
   logging: false
 });
 
 // Define the Acq model for the "create and register accounts" table.
-var Acq = sequelize.define('acq', {
+const Acq = sequelize.define('acq', {
     acq_id: { type: Sequelize.INTEGER, primaryKey: true },
     name: { type: Sequelize.STRING}
   });
 
 // Define the Account model for the "accounts" table.
-var Account = sequelize.define('accounts', {
+const Account = sequelize.define('account', {
     acq_id: { type: Sequelize.INTEGER},
   account_id: { type: Sequelize.INTEGER, primaryKey: true}
 });
 
 // Define the Transactions details model for the "Transaction" table.
-var Transaction = sequelize.define('Transaction', {
+const Transaction = sequelize.define('transaction', {
     account_id: { type: Sequelize.INTEGER},
     type: { type: Sequelize.ENUM ('transfer', 'payment')},
     value: { type: Sequelize.INTEGER},
     timestamp: { type: Sequelize.DATE},
-    description: {tupe: Sequelize.STRING}
+    description: {type: Sequelize.STRING}
 });
 ///fazer apartir daqui esse código pronto 
-// Create the "accounts" table.
-Account.sync({force: true})
-.then(function() {
-  // Insert two rows into the "accounts" table.
-  return Account.bulkCreate([
-    {id: 1, balance: 1000},
-    {id: 2, balance: 250}
-  ]);
+console.log('sincronizando Acq')
+Acq.sync()
+.then(() => {
+  console.log('sincronizando Account')
+  return Account.sync()
 })
-.then(function() {
-  // Retrieve accounts.
-  return Account.findAll();
+.then(()=>{
+  console.log('sincronizando Transaction')
+  return Transaction.sync()
 })
-.then(function(accounts) {
-  // Print out the balances.
-  accounts.forEach(function(account) {
-    console.log(account.id + ' ' + account.balance);
-  });
-  process.exit(0);
-}).catch(function(err) {
-  console.error('error: ' + err.message);
-  process.exit(1);
-});
+// .then(() => {
+//     return Acq.bulkCreate([
+//     {acq_id: 1, name: "Jessica"},
+//     {acq_id: 2, name: "Lucas"}
+//   ]);
+// })
+.then(() => {
+  return Acq.findAll()
+})
+.then((resultado)=>{ 
+  console.log ('acabou')
+  resultado.forEach((item) => {
+    console.log(item.acq_id, item.name)
+  })
+  app.listen(
+      port, 
+      () => console.log(
+          `escuando na porta  ${port}!` //isso é uma interpolação de string uso esse  acento: ` e isso vai pegar a constiavel e inserir dentro da str na posição marcada 
+      )
+  ) 
+})
+
+app.get('/', (req, res) =>{
+  console.log(req.url, req.method) 
+  res.send('Hello World!')
+})
+
+app.get('/acqs_texto', (req, res) => {
+  Acq.findAll()
+  .then((resultados)=>{
+    res.send(
+      resultados
+      .map((item) => `id_acq: ${item.acq_id} name: ${item.name}`)
+      .join('<br>'))
+  })
+})
+
+app.get('/acqs', (req, res) => {
+  Acq.findAll()
+  .then((resultados)=>{
+    const jsonResult = resultados
+    .map((item) => {
+      return {
+        acq_id: item.acq_id,
+        name: item.name,
+      }
+    });
+
+    res.send(
+      jsonResult
+    )
+  })
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // Create the "accounts" table.
+// Account.sync({force: true})
+// .then(function() {
+//   // Insert two rows into the "accounts" table.
+//   return Account.bulkCreate([
+//     {id: 1, balance: 1000},
+//     {id: 2, balance: 250}
+//   ]);
+// })
+// .then(function() {
+//   // Retrieve accounts.
+//   return Account.findAll();
+// })
+// .then(function(accounts) {
+//   // Print out the balances.
+//   accounts.forEach(function(account) {
+//     console.log(account.id + ' ' + account.balance);
+//   });
+//   process.exit(0);
+// }).catch(function(err) {
+//   console.error('error: ' + err.message);
+//   process.exit(1);
+// });
 
 
 
@@ -109,7 +192,7 @@ Account.sync({force: true})
 // app.listen(
 //     port, 
 //     () => console.log(
-//         `escuando na porta  ${port}!` //isso é uma interpolação de string uso esse  acento: ` e isso vai pegar a variavel e inserir dentro da str na posição marcada 
+//         `escuando na porta  ${port}!` //isso é uma interpolação de string uso esse  acento: ` e isso vai pegar a constiavel e inserir dentro da str na posição marcada 
 //     )
 // ) 
 
