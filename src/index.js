@@ -24,7 +24,7 @@ const Account = sequelize.define('account', {
 });
 
 // Define the Transactions details model for the "Transaction" table.
-const Transaction = sequelize.define('transaction', {
+const Transaction = sequelize.define('Transaction', {
     account_id: { type: Sequelize.INTEGER},
     type: { type: Sequelize.ENUM ('transfer', 'payment')},
     value: { type: Sequelize.INTEGER},
@@ -38,36 +38,99 @@ Acq.sync()
   console.log('sincronizando Account')
   return Account.sync()
 })
+
 .then(()=>{
   console.log('sincronizando Transaction')
   return Transaction.sync()
 })
-// .then(() => {
-//     return Acq.bulkCreate([
-//     {acq_id: 1, name: "Jessica"},
-//     {acq_id: 2, name: "Lucas"}
-//   ]);
-// })
+// a partir daqui vou fazer o mesmo para as outras tabelas account e transaction
 .then(() => {
   return Acq.findAll()
 })
+
+// .then(() => {
+//     return Acq.bulkCreate([
+//     {acq_id: 1, name: "Jessica"},
+//     {acq_id: 2, name: "Lucas"},
+//   ]);
+// })
+
 .then((resultado)=>{ 
-  console.log ('acabou')
+  console.log ('acabou_1')
   resultado.forEach((item) => {
     console.log(item.acq_id, item.name)
+})
+app.listen(
+  port, 
+  () => console.log(
+      `escuando na porta  ${port}!` //isso é uma interpolação de string uso esse  acento: ` e isso vai pegar a constiavel e inserir dentro da str na posição marcada 
+  )
+) 
+})
+//-----------------------------------------------------------
+// o de cima é o meu exemplo 
+// .then(() => {
+//   return Account.bulkCreate([
+//   {acq_id: 1, account_id: 1234567890},
+//   {acq_id: 2,account_id: 9876543210}
+//     ])})
+
+.then(() => {
+  return Account.findAll()
+})
+.then((resultados_acc)=>{ 
+  console.log ('acabou_2')
+  resultados_acc.forEach((item_acc) => {
+    console.log(item_acc.acq_id, item_acc.account_id)
   })
-  app.listen(
-      port, 
-      () => console.log(
-          `escuando na porta  ${port}!` //isso é uma interpolação de string uso esse  acento: ` e isso vai pegar a constiavel e inserir dentro da str na posição marcada 
-      )
-  ) 
+// app.listen(
+//   port, 
+//   () => console.log(
+//       `escuando na porta  ${port}!`
+//   )
+// ) 
 })
 
+// será que vai?
+//-----------------------------------------------------------
 app.get('/', (req, res) =>{
   console.log(req.url, req.method) 
   res.send('Hello World!')
 })
+
+//-----------------------------------------------------------
+
+app.get('/accounts_texto', (req, res) => {
+  Account.findAll()
+  .then((resultados_acc)=>{
+    res.send(
+      resultados_acc
+      .map((item_acc) => `id_acq: ${item_acc.acq_id} account_id: ${item_acc.account_id}`)
+      .join('<br>'))
+  })
+
+})
+
+app.get('/accounts', (req, res) => {
+  Account.findAll()
+  .then((resultados_acc)=>{
+    const jsonResult = resultados_acc
+    .map((item_acc) => {
+      return {
+        acq_id: item_acc.acq_id,
+        account_id: item_acc.account_id,
+      }
+    });
+
+    res.send(
+      jsonResult
+    )
+  })
+})
+
+  
+// será que vai?
+//-----------------------------------------------------------
 
 app.get('/acqs_texto', (req, res) => {
   Acq.findAll()
@@ -77,6 +140,7 @@ app.get('/acqs_texto', (req, res) => {
       .map((item) => `id_acq: ${item.acq_id} name: ${item.name}`)
       .join('<br>'))
   })
+
 })
 
 app.get('/acqs', (req, res) => {
@@ -95,16 +159,6 @@ app.get('/acqs', (req, res) => {
     )
   })
 })
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -134,33 +188,6 @@ app.get('/acqs', (req, res) => {
 //   console.error('error: ' + err.message);
 //   process.exit(1);
 // });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
