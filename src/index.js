@@ -83,12 +83,23 @@ app.listen(
   resultados_acc.forEach((item_acc) => {
     console.log(item_acc.acq_id, item_acc.account_id)
   })
-// app.listen(
-//   port, 
-//   () => console.log(
-//       `escuando na porta  ${port}!`
-//   )
-// ) 
+})
+///_______________________________________________________________transaction resultados
+
+.then(() => {
+  return Transaction.bulkCreate([
+  {account_id: 1234567890, type:"transfer", value:10 , timestamp: undefined, description: "A"}
+   ])})
+
+
+.then(() => {
+  return Transaction.findAll()
+})
+.then((resultados_trc)=>{ 
+  console.log ('acabou_3')
+  resultados_trc.forEach((item_trc) => {
+    console.log(item_trc.account_id,item_trc.type, item_trc.value, item_trc.timestamp, item_trc.description)
+  })
 })
 
 // será que vai?
@@ -98,7 +109,7 @@ app.get('/', (req, res) =>{
   res.send('Hello World!')
 })
 
-//-----------------------------------------------------------
+//-----------------------------------------------------------parte do accounts rest
 
 app.get('/accounts_texto', (req, res) => {
   Account.findAll()
@@ -159,10 +170,6 @@ app.get('/acqs', (req, res) => {
     )
   })
 })
-
-
-
-
 
 
 // // Create the "accounts" table.
