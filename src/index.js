@@ -1,26 +1,26 @@
-// const Sequelize = require('sequelize-cockroachdb');
+const Sequelize = require('sequelize-cockroachdb');
 
-// const express = require('express')
-// const app = express()
-// const port = 8000
+const express = require('express')
+const app = express()
+const port = 8000
+
+
+// Connect to CockroachDB through Sequelize.
+  // const sequelize = new Sequelize('vacavomita', 'vacavomita', '', {
+  //   dialect: 'postgres',
+  //   port: 26257,
+  //   logging: false
+  // });
 
 const sequelize = new Sequelize('vacavomita', 'vacavomita', '', {
-  dialect: 'postgres',
+    dialect: 'postgres',
   port: 26257,
   logging: false,
+  operatorsAliases: false, //I add this code line to resolve my bug issue of 'decrapiation'
   define: {
     underscored: true, // Important due running in a postgres dialect
   },
 });
-
-
-// Connect to CockroachDB through Sequelize.
-const sequelize = new Sequelize('vacavomita', 'vacavomita', '', {
-  dialect: 'postgres',
-  port: 26257,
-  logging: false
-});
-
 // Define the Acq model for the "create and register accounts" table.
 const Acq = sequelize.define('acq', {
     acq_id: { type: Sequelize.INTEGER, primaryKey: true },
@@ -54,6 +54,7 @@ Acq.sync()
   return Transaction.sync()
 })
 // a partir daqui vou fazer o mesmo para as outras tabelas account e transaction
+
 .then(() => {
   return Acq.findAll()
 })
@@ -96,12 +97,12 @@ app.listen(
 })
 ///_______________________________________________________________transaction resultados
 
-.then(() => {
-  return Transaction.bulkCreate([
-  {account_id: 1234567890, type:"transfer", value:10 , timestamp: undefined, description: "A"}
-   ])})
+// .then(() => {
+//   return Transaction.bulkCreate([
+//   {account_id: 1234567890, type:"transfer", value:10 , timestamp: undefined, description: "A"}
+//    ])})
 
-b
+
 .then(() => {
   return Transaction.findAll()
 })
