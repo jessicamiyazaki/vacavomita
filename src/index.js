@@ -16,7 +16,7 @@ const sequelize = new Sequelize('vacavomita', 'vacavomita', '', {
     dialect: 'postgres',
   port: 26257,
   logging: false,
-  operatorsAliases: false, //I add this code line to resolve my bug issue of 'decrapiation'
+  operatorsAliases: false, //I add this code line to resolve my bug issue of 'Deprecation'  e tb fiz update do visual code
   define: {
     underscored: true, // Important due running in a postgres dialect
   },
