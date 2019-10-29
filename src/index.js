@@ -1,5 +1,4 @@
 const Sequelize = require('sequelize-cockroachdb');
-
 const express = require('express')
 const app = express()
 const port = 8000
@@ -23,35 +22,82 @@ const sequelize = new Sequelize('vacavomita', 'vacavomita', '', {
 });
 // Define the Acq model for the "create and register accounts" table.
 const Acq = sequelize.define('acq', {
-    acq_id: { type: Sequelize.INTEGER, primaryKey: true },
+    acq_id: { 
+      type: Sequelize.INTEGER, 
+      primaryKey: true, 
+      autoIncrement: true
+    },
     name: { type: Sequelize.STRING}
   });
 
 // Define the Account model for the "accounts" table.
 const Account = sequelize.define('account', {
-    acq_id: { type: Sequelize.INTEGER},
-  account_id: { type: Sequelize.INTEGER, primaryKey: true}
+    // acq_id: { type: Sequelize.INTEGER},
+  account_id: { 
+    type: Sequelize.INTEGER, 
+    primaryKey: true, 
+    autoIncrement: true
+  },
 });
 
 // Define the Transactions details model for the "Transaction" table.
-const Transaction = sequelize.define('Transaction', {
-    account_id: { type: Sequelize.INTEGER},
+const Transaction = sequelize.define('transaction', {
+    // account_id: { type: Sequelize.INTEGER},
+    transaction_id: { 
+      type: Sequelize.INTEGER, 
+      primaryKey: true, 
+      autoIncrement: true
+    },
     type: { type: Sequelize.ENUM ('transfer', 'payment')},
     value: { type: Sequelize.INTEGER},
     timestamp: { type: Sequelize.DATE},
     description: {type: Sequelize.STRING}
 });
+
+
+Acq.hasMany(Account);
+Account.hasMany(Transaction);
+
+
+function criarConta(nome) {
+  return sequelize.transaction((dbTransaction) => {
+      // dbTransaction é o objeto que representa a transação que acabamos de criar. 
+      return Acq.create({
+        // Aqui vão os valores dos campos
+        // o formato é
+        // nomeNoModelo: nomeDaVariavelNoArgumento
+        name: nome,
+    }, {
+        // Esses são parametros pro sequelize, no caso estamos dizendo para o sequelize usar a transação que criamos
+        transaction: dbTransaction
+    })
+    .then((novoAcq) => {
+      return novoAcq.createAccount({
+          // Aqui não especificaremos nenhum campo, dado que a tabela `account` apenas contém um ID que será gerado automaticamente.
+      }, {
+          // É importante passarmos a mesma transação aqui
+          transaction: dbTransaction
+      })
+    })
+    .then((novoAccount) => {
+      
+    })
+  });
+}
+
+const force = false; // forçar recriar todas as tabelas antes era true 
+
 ///fazer apartir daqui esse código pronto 
 console.log('sincronizando Acq')
-Acq.sync()
+Acq.sync({ force })
 .then(() => {
   console.log('sincronizando Account')
-  return Account.sync()
+  return Account.sync({ force })
 })
 
 .then(()=>{
   console.log('sincronizando Transaction')
-  return Transaction.sync()
+  return Transaction.sync({ force })
 })
 // a partir daqui vou fazer o mesmo para as outras tabelas account e transaction
 
@@ -61,8 +107,8 @@ Acq.sync()
 
 // .then(() => {
 //     return Acq.bulkCreate([
-//     {acq_id: 1, name: "Jessica"},
-//     {acq_id: 2, name: "Lucas"},
+//     {name: "Jessica"},
+//     {name: "Lucas"},
 //   ]);
 // })
 
