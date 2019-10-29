@@ -183,6 +183,64 @@ app.listen(
   })
 })
 
+// Adicionar parsing automatico de JSON para objeto javascript em requests
+app.use(express.json());
+
+
+app.post('/createAccount', (req, res) =>{
+  console.log(req.body) 
+  res.send(req.body)
+})
+
+app.post('/createAccount', (req, res) =>{
+  const name = req.body.name;
+  if (!name || name.length == 0) { // Checar se o nome não existe ou ele está vazio
+      res.status(400); // Código HTTP 400
+      res.send({
+          message: 'Esperado campo "name" no request',
+      });
+      return;
+  }
+  
+  // Nome existe e não está vazio
+  console.log(`Pedido de criação de conta para ${name}`)
+  res.send({
+      message: `Conta para ${name}`,
+  })
+})
+
+app.post('/createAccount', (req, res) =>{
+  const name = req.body.name;
+  if (!name || name.length == 0) { // Checar se o nome não existe ou ele está vazio
+      res.status(400); // Código HTTP 400
+      res.send({
+          message: 'Esperado campo "name" no request',
+      });
+      return;
+  }
+  
+  // Nome existe e não está vazio
+  console.log(`Pedido de criação de conta para ${name}`)
+  criarConta(name)
+      .then(() => {
+          console.log(`Conta criada para ${name}`)
+          res.send({
+              message: `Conta para ${name} criada`,
+          })  
+      })
+      .catch((e) => {
+          console.log(`Erro ao criar conta para ${name}: ${e.message}`)
+          res.status(500) // 500 - Internal Server Error
+          res.send({
+              message: `Erro ao criar conta para ${name}: ${e.message}`,
+          })  
+      })
+})
+
+
+
+
+
 // será que vai?
 //-----------------------------------------------------------
 app.get('/', (req, res) =>{
