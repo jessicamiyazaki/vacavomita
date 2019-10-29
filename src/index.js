@@ -3,7 +3,6 @@ const express = require('express')
 const app = express()
 const port = 8000
 
-
 // Connect to CockroachDB through Sequelize.
   // const sequelize = new Sequelize('vacavomita', 'vacavomita', '', {
   //   dialect: 'postgres',
@@ -20,6 +19,7 @@ const sequelize = new Sequelize('vacavomita', 'vacavomita', '', {
     underscored: true, // Important due running in a postgres dialect
   },
 });
+
 // Define the Acq model for the "create and register accounts" table.
 const Acq = sequelize.define('acq', {
     acq_id: { 
@@ -29,7 +29,7 @@ const Acq = sequelize.define('acq', {
     },
     name: { type: Sequelize.STRING}
   });
-
+ 
 // Define the Account model for the "accounts" table.
 const Account = sequelize.define('account', {
     // acq_id: { type: Sequelize.INTEGER},
@@ -58,10 +58,9 @@ const Transaction = sequelize.define('transaction', {
 Acq.hasMany(Account);
 Account.hasMany(Transaction);
 
+//_________________________________________________________________
 function criarConta(nome) {
-  console.log(`Abrindo transação do banco de dados`);
   return sequelize.transaction((dbTransaction) => {
-     console.log(`Criando acq para ${nome}`);
      return Acq.create({
           name: nome,
           // Não precisamos especificar o acq_id pois ele é gerado automaticamente
@@ -69,7 +68,6 @@ function criarConta(nome) {
           transaction: dbTransaction
       })
       .then((novoAcq) => { // novoAcq é o resultado da Promise anterior Acq.create
-          console.log(`Criando conta para ${nome} em acq_id = ${novoAcq.acq_id}`)
           return novoAcq.createAccount({
               // Aqui não especificaremos nenhum campo, dado que a tabela `account` apenas contém um ID que será gerado automaticamente.
           }, {
@@ -77,37 +75,39 @@ function criarConta(nome) {
               transaction: dbTransaction
           })
       })
-      .then((novoAccount) => {
-          console.log(`Criando transaction para ${nome} em account_id = ${novoAccount.account_id}`)
-          const expectedTransactions = [
-                {
-                  type: 'transfer',
-                  value: Math.round(Math.random() * 1000 - 500),
-                  timestamp: new Date(),
-                  description: 'Test Transfer',
-                },
-                {
-                  type: 'payment',
-                  value: Math.round(Math.random() * 1000 - 500),
-                  timestamp: new Date(),
-                  description: 'Test Payment',
-                },
-          ];
-          return Promise.all(
-              expectedTransactions.map((transaction) => account.createTransaction(transaction, { transaction: dbTransaction }))
-          )
-      })
-      .then((transactions) => {
-          console.log(`Foram criadas ${transactions.length} transações para ${nome}. Salvando alterações.`);
-          return dbTransaction.commit();
-      })
-      .catch((e) => { // Caso haja um erro, fazer rollback do que foi feito
-          console.log(`Erro ao criar conta: ${e.message}. Efetuando rollback`)
-          dbTransaction.rollback();
-      })
+
+    .then((novoAccount) => {
+            console.log(`Criando transaction para ${nome} em account_id = ${novoAccount.account_id}`)
+            const expectedTransactions = [
+                  {
+                    type: 'transfer',
+                    value: Math.round(Math.random() * 1000 - 500),
+                    timestamp: new Date(),
+                    description: 'Test Transfer',
+                  },
+                  {
+                    type: 'payment',
+                    value: Math.round(Math.random() * 1000 - 500),
+                    timestamp: new Date(),
+                    description: 'Test Payment',
+                  },
+            ];
+            return Promise.all(
+                expectedTransactions.map((transaction) => account.createTransaction(transaction, { transaction: dbTransaction }))
+            )
+        })
+        .then((transactions) => {
+            console.log(`Foram criadas ${transactions.length} transações para ${nome}. Salvando alterações.`);
+            return dbTransaction.commit();
+        })
+        .catch((e) => { // Caso haja um erro, fazer rollback do que foi feito
+            console.log(`Erro ao criar conta: ${e.message}. Efetuando rollback`)
+            dbTransaction.rollback();
+        })
   });
 };
 
+//_________________________________________________________________
 
 const force = false; // forçar recriar todas as tabelas antes era true 
 
@@ -186,7 +186,6 @@ app.listen(
 // Adicionar parsing automatico de JSON para objeto javascript em requests
 app.use(express.json());
 
-
 app.post('/createAccount', (req, res) =>{
   console.log(req.body) 
   res.send(req.body)
@@ -208,7 +207,6 @@ app.post('/createAccount', (req, res) =>{
       message: `Conta para ${name}`,
   })
 })
-
 app.post('/createAccount', (req, res) =>{
   const name = req.body.name;
   if (!name || name.length == 0) { // Checar se o nome não existe ou ele está vazio
@@ -218,8 +216,7 @@ app.post('/createAccount', (req, res) =>{
       });
       return;
   }
-  
-  // Nome existe e não está vazio
+   // Nome existe e não está vazio
   console.log(`Pedido de criação de conta para ${name}`)
   criarConta(name)
       .then(() => {
@@ -236,9 +233,6 @@ app.post('/createAccount', (req, res) =>{
           })  
       })
 })
-
-
-
 
 
 // será que vai?
