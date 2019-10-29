@@ -58,32 +58,56 @@ const Transaction = sequelize.define('transaction', {
 Acq.hasMany(Account);
 Account.hasMany(Transaction);
 
-
 function criarConta(nome) {
+  console.log(`Abrindo transação do banco de dados`);
   return sequelize.transaction((dbTransaction) => {
-      // dbTransaction é o objeto que representa a transação que acabamos de criar. 
-      return Acq.create({
-        // Aqui vão os valores dos campos
-        // o formato é
-        // nomeNoModelo: nomeDaVariavelNoArgumento
-        name: nome,
-    }, {
-        // Esses são parametros pro sequelize, no caso estamos dizendo para o sequelize usar a transação que criamos
-        transaction: dbTransaction
-    })
-    .then((novoAcq) => {
-      return novoAcq.createAccount({
-          // Aqui não especificaremos nenhum campo, dado que a tabela `account` apenas contém um ID que será gerado automaticamente.
+     console.log(`Criando acq para ${nome}`);
+     return Acq.create({
+          name: nome,
+          // Não precisamos especificar o acq_id pois ele é gerado automaticamente
       }, {
-          // É importante passarmos a mesma transação aqui
           transaction: dbTransaction
       })
-    })
-    .then((novoAccount) => {
-      
-    })
+      .then((novoAcq) => { // novoAcq é o resultado da Promise anterior Acq.create
+          console.log(`Criando conta para ${nome} em acq_id = ${novoAcq.acq_id}`)
+          return novoAcq.createAccount({
+              // Aqui não especificaremos nenhum campo, dado que a tabela `account` apenas contém um ID que será gerado automaticamente.
+          }, {
+              // É importante passarmos a mesma transação aqui
+              transaction: dbTransaction
+          })
+      })
+      .then((novoAccount) => {
+          console.log(`Criando transaction para ${nome} em account_id = ${novoAccount.account_id}`)
+          const expectedTransactions = [
+                {
+                  type: 'transfer',
+                  value: Math.round(Math.random() * 1000 - 500),
+                  timestamp: new Date(),
+                  description: 'Test Transfer',
+                },
+                {
+                  type: 'payment',
+                  value: Math.round(Math.random() * 1000 - 500),
+                  timestamp: new Date(),
+                  description: 'Test Payment',
+                },
+          ];
+          return Promise.all(
+              expectedTransactions.map((transaction) => account.createTransaction(transaction, { transaction: dbTransaction }))
+          )
+      })
+      .then((transactions) => {
+          console.log(`Foram criadas ${transactions.length} transações para ${nome}. Salvando alterações.`);
+          return dbTransaction.commit();
+      })
+      .catch((e) => { // Caso haja um erro, fazer rollback do que foi feito
+          console.log(`Erro ao criar conta: ${e.message}. Efetuando rollback`)
+          dbTransaction.rollback();
+      })
   });
-}
+};
+
 
 const force = false; // forçar recriar todas as tabelas antes era true 
 
