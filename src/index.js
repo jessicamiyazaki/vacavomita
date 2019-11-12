@@ -60,7 +60,8 @@ Account.hasMany(Transaction);
 
 //_________________________________________________________________
 function criarConta(nome) {
-  return sequelize.transaction((dbTransaction) => {
+  return sequelize.transaction()
+    .then((dbTransaction) => {
      return Acq.create({
           name: nome,
           // Não precisamos especificar o acq_id pois ele é gerado automaticamente
@@ -93,7 +94,7 @@ function criarConta(nome) {
                   },
             ];
             return Promise.all(
-                expectedTransactions.map((transaction) => account.createTransaction(transaction, { transaction: dbTransaction }))
+                expectedTransactions.map((transaction) => novoAccount.createTransaction(transaction, { transaction: dbTransaction }))
             )
         })
         .then((transactions) => {
@@ -186,27 +187,27 @@ app.listen(
 // Adicionar parsing automatico de JSON para objeto javascript em requests
 app.use(express.json());
 
-app.post('/createAccount', (req, res) =>{
-  console.log(req.body) 
-  res.send(req.body)
-})
+// app.post('/createAccount', (req, res) =>{
+//   console.log(req.body) 
+//   res.send(req.body)
+// })
 
-app.post('/createAccount', (req, res) =>{
-  const name = req.body.name;
-  if (!name || name.length == 0) { // Checar se o nome não existe ou ele está vazio
-      res.status(400); // Código HTTP 400
-      res.send({
-          message: 'Esperado campo "name" no request',
-      });
-      return;
-  }
+// app.post('/createAccount', (req, res) =>{
+//   const name = req.body.name;
+//   if (!name || name.length == 0) { // Checar se o nome não existe ou ele está vazio
+//       res.status(400); // Código HTTP 400
+//       res.send({
+//           message: 'Esperado campo "name" no request',
+//       });
+//       return;
+//   }
   
-  // Nome existe e não está vazio
-  console.log(`Pedido de criação de conta para ${name}`)
-  res.send({
-      message: `Conta para ${name}`,
-  })
-})
+//   // Nome existe e não está vazio
+//   console.log(`Pedido de criação de conta para ${name}`)
+//   res.send({
+//       message: `Conta para ${name}`,
+//   })
+// })
 app.post('/createAccount', (req, res) =>{
   const name = req.body.name;
   if (!name || name.length == 0) { // Checar se o nome não existe ou ele está vazio
